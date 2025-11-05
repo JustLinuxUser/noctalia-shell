@@ -124,18 +124,21 @@ ColumnLayout {
   }
 
   // Monitor tabs - only visible when not syncing
-  TabBar {
+  NTabBar {
     id: monitorTabBar
     Layout.fillWidth: true
     visible: !Settings.data.bar.syncAcrossMonitors
+    currentIndex: currentMonitorIndex
+    onCurrentIndexChanged: currentMonitorIndex = currentIndex
 
     Repeater {
       model: Quickshell.screens
-      TabButton {
+      NTabButton {
         required property var modelData
         required property int index
         text: modelData.name
-        onClicked: currentMonitorIndex = index
+        tabIndex: index
+        checked: monitorTabBar.currentIndex === index
       }
     }
   }
@@ -150,6 +153,7 @@ ColumnLayout {
   NToggle {
     Layout.fillWidth: true
     visible: !Settings.data.bar.syncAcrossMonitors
+    //TODO TRANSLATE
     label: `Show bar on ${currentMonitorName}`
     description: `Enable or disable the bar on this monitor`
     checked: (Settings.data.bar.monitors || []).length === 0 || (Settings.data.bar.monitors || []).indexOf(currentMonitorName) !== -1
