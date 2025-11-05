@@ -158,33 +158,9 @@ Singleton {
       property bool outerCorners: true
       property bool exclusive: true
       property JsonObject widgets: JsonObject {
-        property list<var> left: [{
-            "id": "SystemMonitor"
-          }, {
-            "id": "ActiveWindow"
-          }, {
-            "id": "MediaMini"
-          }]
-        property list<var> center: [{
-            "id": "Workspace"
-          }]
-        property list<var> right: [{
-            "id": "ScreenRecorder"
-          }, {
-            "id": "Tray"
-          }, {
-            "id": "NotificationHistory"
-          }, {
-            "id": "Battery"
-          }, {
-            "id": "Volume"
-          }, {
-            "id": "Brightness"
-          }, {
-            "id": "Clock"
-          }, {
-            "id": "ControlCenter"
-          }]
+        property list<var> left: []
+        property list<var> center: []
+        property list<var> right: []
       }
     }
 
@@ -601,6 +577,40 @@ Singleton {
       Logger.i("Settings", `Creating config for new monitor ${monitorName} with hardcoded defaults`)
       setMonitorBarConfig(monitorName, getDefaultBarConfig())
     }
+  }
+
+  // Get widget settings for a specific monitor and section
+  function getWidgetSettings(monitorName, section, widgetIndex) {
+    var config = getMonitorBarConfig(monitorName)
+    if (!config || !config.widgets || !config.widgets[section]) {
+      return {}
+    }
+    var widgets = config.widgets[section]
+    if (widgetIndex >= 0 && widgetIndex < widgets.length) {
+      return widgets[widgetIndex]
+    }
+    return {}
+  }
+
+  // Update widget settings for a specific monitor and section
+  function setWidgetSettings(monitorName, section, widgetIndex, newSettings) {
+    var config = JSON.parse(JSON.stringify(getMonitorBarConfig(monitorName)))
+    if (!config.widgets) {
+      config.widgets = {
+        "left": [],
+        "center": [],
+        "right": []
+      }
+    }
+    if (!config.widgets[section]) {
+      config.widgets[section] = []
+    }
+    if (widgetIndex >= 0 && widgetIndex < config.widgets[section].length) {
+      config.widgets[section][widgetIndex] = newSettings
+      setMonitorBarConfig(monitorName, config)
+      return true
+    }
+    return false
   }
 
   // -----------------------------------------------------

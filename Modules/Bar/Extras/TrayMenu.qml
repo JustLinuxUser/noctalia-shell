@@ -19,6 +19,7 @@ PopupWindow {
   property var trayItem: null
   property string widgetSection: ""
   property int widgetIndex: -1
+  property string barPosition: "top" // Passed from Tray widget
 
   readonly property int menuWidth: 240
 
@@ -216,7 +217,6 @@ PopupWindow {
                   let openLeft = false
 
                   // Check bar position first
-                  const barPosition = Settings.data.bar.position
                   const globalPos = entry.mapToItem(null, 0, 0)
 
                   if (barPosition === "right") {
@@ -303,16 +303,13 @@ PopupWindow {
 
         // Check if item is already a favorite
         readonly property bool isFavorite: {
-          if (!root.trayItem || root.widgetSection === "" || root.widgetIndex < 0)
+          if (!root.trayItem || !root.screen || root.widgetSection === "" || root.widgetIndex < 0)
             return false
           const itemName = root.trayItem.tooltipTitle || root.trayItem.name || root.trayItem.id || ""
           if (!itemName)
             return false
 
-          var widgets = Settings.data.bar.widgets[root.widgetSection]
-          if (!widgets || root.widgetIndex >= widgets.length)
-            return false
-          var widgetSettings = widgets[root.widgetIndex]
+          var widgetSettings = Settings.getWidgetSettings(root.screen.name, root.widgetSection, root.widgetIndex)
           if (!widgetSettings || widgetSettings.id !== "Tray")
             return false
 
@@ -390,13 +387,7 @@ PopupWindow {
     }
 
     // Get current widget settings
-    var widgets = Settings.data.bar.widgets[widgetSection]
-    if (!widgets || widgetIndex >= widgets.length) {
-      Logger.w("TrayMenu", "Cannot add as favorite: invalid widget index")
-      return
-    }
-
-    var widgetSettings = widgets[widgetIndex]
+    var widgetSettings = Settings.getWidgetSettings(screen.name, widgetSection, widgetIndex)
     if (!widgetSettings || widgetSettings.id !== "Tray") {
       Logger.w("TrayMenu", "Cannot add as favorite: widget is not a Tray widget")
       return
@@ -414,8 +405,7 @@ PopupWindow {
     newSettings.favorites = newFavorites
 
     // Update settings
-    widgets[widgetIndex] = newSettings
-    Settings.data.bar.widgets[widgetSection] = widgets
+    Settings.setWidgetSettings(screen.name, widgetSection, widgetIndex, newSettings)
     Settings.saveImmediate()
 
     Logger.i("TrayMenu", "Added", itemName, "as favorite")
@@ -443,13 +433,7 @@ PopupWindow {
     }
 
     // Get current widget settings
-    var widgets = Settings.data.bar.widgets[widgetSection]
-    if (!widgets || widgetIndex >= widgets.length) {
-      Logger.w("TrayMenu", "Cannot remove from favorites: invalid widget index")
-      return
-    }
-
-    var widgetSettings = widgets[widgetIndex]
+    var widgetSettings = Settings.getWidgetSettings(screen.name, widgetSection, widgetIndex)
     if (!widgetSettings || widgetSettings.id !== "Tray") {
       Logger.w("TrayMenu", "Cannot remove from favorites: widget is not a Tray widget")
       return
@@ -471,8 +455,7 @@ PopupWindow {
     newSettings.favorites = newFavorites
 
     // Update settings
-    widgets[widgetIndex] = newSettings
-    Settings.data.bar.widgets[widgetSection] = widgets
+    Settings.setWidgetSettings(screen.name, widgetSection, widgetIndex, newSettings)
     Settings.saveImmediate()
 
     Logger.i("TrayMenu", "Removed", itemName, "from favorites")

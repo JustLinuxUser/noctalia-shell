@@ -22,11 +22,8 @@ Item {
 
   property var widgetMetadata: BarWidgetRegistry.widgetMetadata[widgetId]
   property var widgetSettings: {
-    if (section && sectionWidgetIndex >= 0) {
-      var widgets = Settings.data.bar.widgets[section]
-      if (widgets && sectionWidgetIndex < widgets.length) {
-        return widgets[sectionWidgetIndex]
-      }
+    if (screen && section && sectionWidgetIndex >= 0) {
+      return Settings.getWidgetSettings(screen.name, section, sectionWidgetIndex)
     }
     return {}
   }
@@ -40,12 +37,17 @@ Item {
   readonly property real maxWidth: (widgetSettings.maxWidth !== undefined) ? widgetSettings.maxWidth : Math.max(widgetMetadata.maxWidth, screen ? screen.width * 0.06 : 0)
   readonly property bool useFixedWidth: (widgetSettings.useFixedWidth !== undefined) ? widgetSettings.useFixedWidth : widgetMetadata.useFixedWidth
 
-  readonly property bool isVerticalBar: (Settings.data.bar.position === "left" || Settings.data.bar.position === "right")
+  property string barPosition: "top" // Passed from Bar.qml
+  property string barDensity: "default" // Passed from Bar.qml
+  property bool barShowCapsule: true // Passed from Bar.qml
+  readonly property real barHeight: BarService.getBarHeight(barDensity, barPosition)
+  readonly property real capsuleHeight: BarService.getCapsuleHeight(barDensity, barPosition)
+  readonly property bool isVerticalBar: (barPosition === "left" || barPosition === "right")
   readonly property bool hasFocusedWindow: CompositorService.getFocusedWindow() !== null
   readonly property string windowTitle: CompositorService.getFocusedWindowTitle() || "No active window"
   readonly property string fallbackIcon: "user-desktop"
 
-  implicitHeight: visible ? (isVerticalBar ? (((!hasFocusedWindow) && hideMode === "hidden") ? 0 : calculatedVerticalDimension()) : Style.capsuleHeight) : 0
+  implicitHeight: visible ? (isVerticalBar ? (((!hasFocusedWindow) && hideMode === "hidden") ? 0 : calculatedVerticalDimension()) : capsuleHeight) : 0
   implicitWidth: visible ? (isVerticalBar ? (((!hasFocusedWindow) && hideMode === "hidden") ? 0 : calculatedVerticalDimension()) : (((!hasFocusedWindow) && hideMode === "hidden") ? 0 : dynamicWidth)) : 0
 
   // "visible": Always Visible, "hidden": Hide When Empty, "transparent": Transparent When Empty
@@ -171,9 +173,9 @@ Item {
     visible: root.visible
     anchors.verticalCenter: parent.verticalCenter
     width: isVerticalBar ? ((!hasFocusedWindow) && hideMode === "hidden" ? 0 : calculatedVerticalDimension()) : ((!hasFocusedWindow) && (hideMode === "hidden") ? 0 : dynamicWidth)
-    height: isVerticalBar ? ((!hasFocusedWindow) && hideMode === "hidden" ? 0 : calculatedVerticalDimension()) : Style.capsuleHeight
+    height: isVerticalBar ? ((!hasFocusedWindow) && hideMode === "hidden" ? 0 : calculatedVerticalDimension()) : capsuleHeight
     radius: isVerticalBar ? width / 2 : Style.radiusM
-    color: Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent
+    color: barShowCapsule ? Color.mSurfaceVariant : Color.transparent
 
     // Smooth width transition
     Behavior on width {
@@ -412,7 +414,7 @@ Item {
         acceptedButtons: Qt.LeftButton
         onEntered: {
           if ((windowTitle !== "") && isVerticalBar || (scrollingMode === "never")) {
-            TooltipService.show(Screen, root, windowTitle, BarService.getTooltipDirection())
+            TooltipService.show(Screen, root, windowTitle, BarService.getTooltipDirection(barPosition))
           }
         }
         onExited: {

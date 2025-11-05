@@ -22,20 +22,20 @@ Item {
 
   property var widgetMetadata: BarWidgetRegistry.widgetMetadata[widgetId]
   property var widgetSettings: {
-    if (section && sectionWidgetIndex >= 0) {
-      var widgets = Settings.data.bar.widgets[section]
-      if (widgets && sectionWidgetIndex < widgets.length) {
-        return widgets[sectionWidgetIndex]
-      }
+    if (screen && section && sectionWidgetIndex >= 0) {
+      return Settings.getWidgetSettings(screen.name, section, sectionWidgetIndex)
     }
     return {}
   }
 
-  readonly property string barPosition: Settings.data.bar.position
+  property string barPosition: "top" // Passed from Bar.qml
+  property string barDensity: "default" // Passed from Bar.qml
+  property bool barShowCapsule: true // Passed from Bar.qml
+  readonly property real barHeight: BarService.getBarHeight(barDensity, barPosition)
+  readonly property real capsuleHeight: BarService.getCapsuleHeight(barDensity, barPosition)
   readonly property bool isVertical: barPosition === "left" || barPosition === "right"
-  readonly property bool density: Settings.data.bar.density
   readonly property real baseDimensionRatio: {
-    const b = (density === "compact") ? 0.85 : 0.65
+    const b = (barDensity === "compact") ? 0.85 : 0.65
     if (widgetSettings.labelMode === "none") {
       return b * 0.75
     }
@@ -63,11 +63,11 @@ Item {
 
   signal workspaceChanged(int workspaceId, color accentColor)
 
-  implicitWidth: isVertical ? Style.barHeight : computeWidth()
-  implicitHeight: isVertical ? computeHeight() : Style.barHeight
+  implicitWidth: isVertical ? barHeight : computeWidth()
+  implicitHeight: isVertical ? computeHeight() : barHeight
 
   function getWorkspaceWidth(ws) {
-    const d = Style.capsuleHeight * root.baseDimensionRatio
+    const d = capsuleHeight * root.baseDimensionRatio
     const factor = ws.isActive ? 2.2 : 1
 
     // For name mode, calculate width based on actual text content
@@ -82,7 +82,7 @@ Item {
   }
 
   function getWorkspaceHeight(ws) {
-    const d = Style.capsuleHeight * root.baseDimensionRatio
+    const d = capsuleHeight * root.baseDimensionRatio
     const factor = ws.isActive ? 2.2 : 1
     return d * factor
   }
@@ -212,10 +212,10 @@ Item {
 
   Rectangle {
     id: workspaceBackground
-    width: isVertical ? Style.capsuleHeight : parent.width
-    height: isVertical ? parent.height : Style.capsuleHeight
+    width: isVertical ? capsuleHeight : parent.width
+    height: isVertical ? parent.height : capsuleHeight
     radius: Style.radiusM
-    color: Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent
+    color: barShowCapsule ? Color.mSurfaceVariant : Color.transparent
 
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.verticalCenter: parent.verticalCenter
@@ -275,7 +275,7 @@ Item {
       Item {
         id: workspacePillContainer
         width: root.getWorkspaceWidth(model)
-        height: Style.capsuleHeight * root.baseDimensionRatio
+        height: capsuleHeight * root.baseDimensionRatio
 
         Rectangle {
           id: pill
@@ -419,7 +419,7 @@ Item {
       model: localWorkspaces
       Item {
         id: workspacePillContainerVertical
-        width: Style.capsuleHeight * root.baseDimensionRatio
+        width: capsuleHeight * root.baseDimensionRatio
         height: root.getWorkspaceHeight(model)
 
         Rectangle {

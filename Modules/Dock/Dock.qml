@@ -17,6 +17,9 @@ Variants {
 
     required property ShellScreen modelData
 
+    // Get bar configuration for this screen
+    property var barConfig: modelData ? Settings.getMonitorBarConfig(modelData.name) : Settings.getDefaultBarConfig()
+
     property bool barIsReady: modelData ? BarService.isBarReady(modelData.name) : false
 
     Connections {
@@ -68,8 +71,8 @@ Variants {
 
     // Bar detection and positioning properties
     readonly property bool hasBar: modelData && modelData.name ? (Settings.data.bar.monitors.includes(modelData.name) || (Settings.data.bar.monitors.length === 0)) : false
-    readonly property bool barAtBottom: hasBar && Settings.data.bar.position === "bottom"
-    readonly property int barHeight: Style.barHeight
+    readonly property bool barAtBottom: hasBar && root.barConfig.position === "bottom"
+    readonly property int barHeight: BarService.getBarHeight(root.barConfig.density, root.barConfig.position)
 
     // Shared state between windows
     property bool dockHovered: false
@@ -255,9 +258,9 @@ Variants {
         anchors.bottom: true
 
         margins.bottom: {
-          switch (Settings.data.bar.position) {
+          switch (root.barConfig.position) {
           case "bottom":
-            return (Style.barHeight + Style.marginM) + (Settings.data.bar.floating ? Settings.data.bar.marginVertical * Style.marginXL + floatingMargin : floatingMargin)
+            return (root.barHeight + Style.marginM) + (root.barConfig.floating ? root.barConfig.marginVertical * Style.marginXL + floatingMargin : floatingMargin)
           default:
             return floatingMargin
           }

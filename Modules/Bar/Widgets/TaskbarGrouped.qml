@@ -19,16 +19,17 @@ Item {
   property int sectionWidgetIndex: -1
   property int sectionWidgetsCount: 0
 
-  readonly property bool isVerticalBar: Settings.data.bar.position === "left" || Settings.data.bar.position === "right"
-  readonly property string density: Settings.data.bar.density
-  readonly property real itemSize: (density === "compact") ? Style.capsuleHeight * 0.9 : Style.capsuleHeight * 0.8
+  property string barPosition: "top" // Passed from Bar.qml
+  property string barDensity: "default" // Passed from Bar.qml
+  property bool barShowCapsule: true // Passed from Bar.qml
+  readonly property real barHeight: BarService.getBarHeight(barDensity, barPosition)
+  readonly property real capsuleHeight: BarService.getCapsuleHeight(barDensity, barPosition)
+  readonly property bool isVerticalBar: barPosition === "left" || barPosition === "right"
+  readonly property real itemSize: (density === "compact") ? capsuleHeight * 0.9 : capsuleHeight * 0.8
   property var widgetMetadata: BarWidgetRegistry.widgetMetadata[widgetId]
   property var widgetSettings: {
-    if (section && sectionWidgetIndex >= 0) {
-      var widgets = Settings.data.bar.widgets[section]
-      if (widgets && sectionWidgetIndex < widgets.length) {
-        return widgets[sectionWidgetIndex]
-      }
+    if (screen && section && sectionWidgetIndex >= 0) {
+      return Settings.getWidgetSettings(screen.name, section, sectionWidgetIndex)
     }
     return {}
   }
@@ -65,7 +66,7 @@ Item {
   onScreenChanged: refreshWorkspaces()
 
   implicitWidth: isVerticalBar ? taskbarGrid.implicitWidth + Style.marginM * 2 : Math.round(taskbarGrid.implicitWidth + Style.marginM * 2)
-  implicitHeight: isVerticalBar ? Math.round(taskbarGrid.implicitHeight + Style.marginM * 2) : Style.barHeight
+  implicitHeight: isVerticalBar ? Math.round(taskbarGrid.implicitHeight + Style.marginM * 2) : barHeight
 
   Connections {
     target: CompositorService
@@ -94,7 +95,7 @@ Item {
       border.width: 1
       width: (hasWindows ? iconsFlow.implicitWidth : root.itemSize * 0.8) + (root.isVerticalBar ? Style.marginXS : Style.marginL)
       height: (hasWindows ? iconsFlow.implicitHeight : root.itemSize * 0.8) + (root.isVerticalBar ? Style.marginL : Style.marginXS)
-      color: Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent
+      color: barShowCapsule ? Color.mSurfaceVariant : Color.transparent
 
       MouseArea {
         anchors.fill: parent
@@ -189,7 +190,7 @@ Item {
               }
               onEntered: {
                 taskbarItem.itemHovered = true
-                TooltipService.show(Screen, taskbarItem, model.title || model.appId || "Unknown app.", BarService.getTooltipDirection())
+                TooltipService.show(Screen, taskbarItem, model.title || model.appId || "Unknown app.", BarService.getTooltipDirection(barPosition))
               }
               onExited: {
                 taskbarItem.itemHovered = false

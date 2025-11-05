@@ -16,15 +16,17 @@ Item {
   property int sectionWidgetIndex: -1
   property int sectionWidgetsCount: 0
 
-  readonly property bool isVerticalBar: (Settings.data.bar.position === "left" || Settings.data.bar.position === "right")
+  property string barPosition: "top" // Passed from Bar.qml
+  property string barDensity: "default" // Passed from Bar.qml
+  property bool barShowCapsule: true // Passed from Bar.qml
+  readonly property real barHeight: BarService.getBarHeight(barDensity, barPosition)
+  readonly property real capsuleHeight: BarService.getCapsuleHeight(barDensity, barPosition)
+  readonly property bool isVerticalBar: (barPosition === "left" || barPosition === "right")
 
   property var widgetMetadata: BarWidgetRegistry.widgetMetadata[widgetId]
   property var widgetSettings: {
-    if (section && sectionWidgetIndex >= 0) {
-      var widgets = Settings.data.bar.widgets[section]
-      if (widgets && sectionWidgetIndex < widgets.length) {
-        return widgets[sectionWidgetIndex]
-      }
+    if (screen && section && sectionWidgetIndex >= 0) {
+      return Settings.getWidgetSettings(screen.name, section, sectionWidgetIndex)
     }
     return {}
   }
@@ -52,8 +54,8 @@ Item {
 
   readonly property bool shouldShow: (currentVisualizerType !== "" && currentVisualizerType !== "none") && (!hideWhenIdle || MediaService.isPlaying)
 
-  implicitWidth: !shouldShow ? 0 : isVerticalBar ? Style.capsuleHeight : visualizerWidth
-  implicitHeight: !shouldShow ? 0 : isVerticalBar ? visualizerWidth : Style.capsuleHeight
+  implicitWidth: !shouldShow ? 0 : isVerticalBar ? capsuleHeight : visualizerWidth
+  implicitHeight: !shouldShow ? 0 : isVerticalBar ? visualizerWidth : capsuleHeight
   visible: shouldShow
 
   Behavior on implicitWidth {
@@ -73,7 +75,7 @@ Item {
     id: background
     anchors.fill: parent
     radius: Style.radiusS
-    color: Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent
+    color: barShowCapsule ? Color.mSurfaceVariant : Color.transparent
   }
 
   // Store visualizer type to force re-evaluation

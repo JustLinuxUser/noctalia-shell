@@ -17,6 +17,7 @@ NPanel {
   panelBorderColor: Color.transparent
 
   property var requestedWidgetSettings: []
+  property string screenName: screen ? screen.name : ""
 
   panelContent: Item {
 
@@ -61,7 +62,7 @@ NPanel {
   }
 
   function updateWidgetSettingsInSection(section, index, settings) {
-    Settings.data.bar.widgets[section][index] = settings
+    Settings.setWidgetSettings(screenName, section, index, settings)
   }
 
   function closeWidgetSettings() {

@@ -17,13 +17,16 @@ NPanel {
   preferredWidthRatio: 0.5
   preferredHeightRatio: 0.45
 
+  // Per-monitor bar configuration (use default since this is a global panel)
+  property var barConfig: Settings.getDefaultBarConfig()
+
   // Positioning
   readonly property string panelPosition: {
     if (Settings.data.wallpaper.panelPosition === "follow_bar") {
-      if (Settings.data.bar.position === "left" || Settings.data.bar.position === "right") {
-        return `center_${Settings.data.bar.position}`
+      if (barConfig.position === "left" || barConfig.position === "right") {
+        return `center_${barConfig.position}`
       } else {
-        return `${Settings.data.bar.position}_center`
+        return `${barConfig.position}_center`
       }
     } else {
       return Settings.data.wallpaper.panelPosition

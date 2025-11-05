@@ -17,7 +17,7 @@ Popup {
   width: 580
   height: {
     const h = scrollView.implicitHeight + padding * 2
-    Math.min(h, screen?.height - Style.barHeight - Style.marginL * 2)
+    Math.min(h, screen?.height - Style.marginL * 8)
   }
   padding: Style.marginXL
 

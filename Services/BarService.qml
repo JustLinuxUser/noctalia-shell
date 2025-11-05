@@ -232,8 +232,8 @@ Singleton {
     return false
   }
 
-  function getTooltipDirection() {
-    switch (Settings.data.bar.position) {
+  function getTooltipDirection(barPosition) {
+    switch (barPosition) {
     case "right":
       return "left"
     case "left":
@@ -242,6 +242,40 @@ Singleton {
       return "top"
     default:
       return "bottom"
+    }
+  }
+
+  // Get bar height based on density and position
+  function getBarHeight(density, position) {
+    var isVertical = (position === "left" || position === "right")
+    switch (density) {
+    case "mini":
+      return isVertical ? 22 : 20
+    case "compact":
+      return isVertical ? 27 : 25
+    case "comfortable":
+      return isVertical ? 39 : 37
+    default:
+
+    case "default":
+      return isVertical ? 33 : 31
+    }
+  }
+
+  // Get capsule height based on density
+  function getCapsuleHeight(density, position) {
+    var barHeight = getBarHeight(density, position)
+    switch (density) {
+    case "mini":
+      return barHeight * 1.0
+    case "compact":
+      return barHeight * 0.85
+    case "comfortable":
+      return barHeight * 0.73
+    default:
+
+    case "default":
+      return barHeight * 0.82
     }
   }
 }

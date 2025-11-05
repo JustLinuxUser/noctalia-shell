@@ -21,11 +21,8 @@ Item {
 
   property var widgetMetadata: BarWidgetRegistry.widgetMetadata[widgetId]
   property var widgetSettings: {
-    if (section && sectionWidgetIndex >= 0) {
-      var widgets = Settings.data.bar.widgets[section]
-      if (widgets && sectionWidgetIndex < widgets.length) {
-        return widgets[sectionWidgetIndex]
-      }
+    if (screen && section && sectionWidgetIndex >= 0) {
+      return Settings.getWidgetSettings(screen.name, section, sectionWidgetIndex)
     }
     return {}
   }
@@ -42,7 +39,7 @@ Item {
     id: pill
 
     anchors.verticalCenter: parent.verticalCenter
-    density: Settings.data.bar.density
+    density: barDensity
     oppositeDirection: BarService.getPillDirection(root)
     icon: "keyboard"
     autoHide: false // Important to be false so we can hover as long as we want

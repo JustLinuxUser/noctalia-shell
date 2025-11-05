@@ -11,6 +11,10 @@ Item {
 
   required property ShellScreen screen
 
+  // Get bar configuration for this screen
+  property var barConfig: Settings.getMonitorBarConfig(screen.name)
+  readonly property real barHeight: BarService.getBarHeight(barConfig.density, barConfig.position)
+
   // Local queue for this screen only (bounded to prevent memory issues)
   property var messageQueue: []
   property int maxQueueSize: 10
@@ -153,9 +157,9 @@ Item {
         if (!(anchors.top))
           return 0
         var base = Style.marginM
-        if (Settings.data.bar.position === "top") {
-          var floatExtraV = Settings.data.bar.floating ? Settings.data.bar.marginVertical * Style.marginXL : 0
-          return (Style.barHeight) + base + floatExtraV
+        if (root.barConfig.position === "top") {
+          var floatExtraV = root.barConfig.floating ? root.barConfig.marginVertical * Style.marginXL : 0
+          return (barHeight) + base + floatExtraV
         }
         return base
       }
@@ -164,9 +168,9 @@ Item {
         if (!(anchors.bottom))
           return 0
         var base = Style.marginM
-        if (Settings.data.bar.position === "bottom") {
-          var floatExtraV = Settings.data.bar.floating ? Settings.data.bar.marginVertical * Style.marginXL : 0
-          return (Style.barHeight) + base + floatExtraV
+        if (root.barConfig.position === "bottom") {
+          var floatExtraV = root.barConfig.floating ? root.barConfig.marginVertical * Style.marginXL : 0
+          return (barHeight) + base + floatExtraV
         }
         return base
       }
@@ -175,9 +179,9 @@ Item {
         if (!(anchors.left))
           return 0
         var base = Style.marginM
-        if (Settings.data.bar.position === "left") {
-          var floatExtraH = Settings.data.bar.floating ? Settings.data.bar.marginHorizontal * Style.marginXL : 0
-          return (Style.barHeight) + base + floatExtraH
+        if (root.barConfig.position === "left") {
+          var floatExtraH = root.barConfig.floating ? root.barConfig.marginHorizontal * Style.marginXL : 0
+          return (barHeight) + base + floatExtraH
         }
         return base
       }
@@ -186,9 +190,9 @@ Item {
         if (!(anchors.right))
           return 0
         var base = Style.marginM
-        if (Settings.data.bar.position === "right") {
-          var floatExtraH = Settings.data.bar.floating ? Settings.data.bar.marginHorizontal * Style.marginXL : 0
-          return (Style.barHeight) + base + floatExtraH
+        if (root.barConfig.position === "right") {
+          var floatExtraH = root.barConfig.floating ? root.barConfig.marginHorizontal * Style.marginXL : 0
+          return (barHeight) + base + floatExtraH
         }
         return base
       }

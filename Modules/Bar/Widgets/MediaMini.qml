@@ -21,16 +21,18 @@ Item {
 
   property var widgetMetadata: BarWidgetRegistry.widgetMetadata[widgetId]
   property var widgetSettings: {
-    if (section && sectionWidgetIndex >= 0) {
-      var widgets = Settings.data.bar.widgets[section]
-      if (widgets && sectionWidgetIndex < widgets.length) {
-        return widgets[sectionWidgetIndex]
-      }
+    if (screen && section && sectionWidgetIndex >= 0) {
+      return Settings.getWidgetSettings(screen.name, section, sectionWidgetIndex)
     }
     return {}
   }
 
-  readonly property bool isVerticalBar: (Settings.data.bar.position === "left" || Settings.data.bar.position === "right")
+  property string barPosition: "top" // Passed from Bar.qml
+  property string barDensity: "default" // Passed from Bar.qml
+  property bool barShowCapsule: true // Passed from Bar.qml
+  readonly property real barHeight: BarService.getBarHeight(barDensity, barPosition)
+  readonly property real capsuleHeight: BarService.getCapsuleHeight(barDensity, barPosition)
+  readonly property bool isVerticalBar: (barPosition === "left" || barPosition === "right")
 
   readonly property string hideMode: (widgetSettings.hideMode !== undefined) ? widgetSettings.hideMode : "hidden" // "visible", "hidden", "transparent", "idle"
   // Backward compatibility: honor legacy hideWhenIdle setting if present
@@ -66,7 +68,7 @@ Item {
   readonly property bool shouldHideIdle: ((hideMode === "idle") || hideWhenIdle) && !MediaService.isPlaying
   readonly property bool isEmptyForHideMode: (!hasActivePlayer) && (hideMode === "hidden" || hideMode === "transparent")
 
-  implicitHeight: visible ? (isVerticalBar ? ((shouldHideIdle || isEmptyForHideMode) ? 0 : calculatedVerticalDimension()) : Style.capsuleHeight) : 0
+  implicitHeight: visible ? (isVerticalBar ? ((shouldHideIdle || isEmptyForHideMode) ? 0 : calculatedVerticalDimension()) : capsuleHeight) : 0
   implicitWidth: visible ? (isVerticalBar ? ((shouldHideIdle || isEmptyForHideMode) ? 0 : calculatedVerticalDimension()) : ((shouldHideIdle || isEmptyForHideMode) ? 0 : dynamicWidth)) : 0
 
   // "visible": Always Visible, "hidden": Hide When Empty, "transparent": Transparent When Empty, "idle": Hide When Idle (not playing)
@@ -162,9 +164,9 @@ Item {
     anchors.left: parent.left
     anchors.verticalCenter: parent.verticalCenter
     width: isVerticalBar ? ((shouldHideIdle || isEmptyForHideMode) ? 0 : calculatedVerticalDimension()) : ((shouldHideIdle || isEmptyForHideMode) ? 0 : dynamicWidth)
-    height: isVerticalBar ? ((shouldHideIdle || isEmptyForHideMode) ? 0 : calculatedVerticalDimension()) : Style.capsuleHeight
+    height: isVerticalBar ? ((shouldHideIdle || isEmptyForHideMode) ? 0 : calculatedVerticalDimension()) : capsuleHeight
     radius: isVerticalBar ? width / 2 : Style.radiusM
-    color: Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent
+    color: barShowCapsule ? Color.mSurfaceVariant : Color.transparent
 
     // Smooth width transition
     Behavior on width {
@@ -478,7 +480,7 @@ Item {
         onEntered: {
           var textToShow = hasActivePlayer ? tooltipText : placeholderText
           if ((textToShow !== "") && isVerticalBar || (scrollingMode === "never")) {
-            TooltipService.show(Screen, root, textToShow, BarService.getTooltipDirection())
+            TooltipService.show(Screen, root, textToShow, BarService.getTooltipDirection(barPosition))
           }
         }
         onExited: {

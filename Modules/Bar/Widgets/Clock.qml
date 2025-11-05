@@ -19,18 +19,18 @@ Rectangle {
 
   property var widgetMetadata: BarWidgetRegistry.widgetMetadata[widgetId]
   property var widgetSettings: {
-    if (section && sectionWidgetIndex >= 0) {
-      var widgets = Settings.data.bar.widgets[section]
-      if (widgets && sectionWidgetIndex < widgets.length) {
-        return widgets[sectionWidgetIndex]
-      }
+    if (screen && section && sectionWidgetIndex >= 0) {
+      return Settings.getWidgetSettings(screen.name, section, sectionWidgetIndex)
     }
     return {}
   }
 
-  readonly property string barPosition: Settings.data.bar.position
+  property string barPosition: "top" // Passed from Bar.qml
+  property string barDensity: "default" // Passed from Bar.qml
+  property bool barShowCapsule: true // Passed from Bar.qml
+  readonly property real barHeight: BarService.getBarHeight(barDensity, barPosition)
+  readonly property real capsuleHeight: BarService.getCapsuleHeight(barDensity, barPosition)
   readonly property bool isBarVertical: barPosition === "left" || barPosition === "right"
-  readonly property bool density: Settings.data.bar.density
 
   readonly property var now: Time.now
 
@@ -41,12 +41,12 @@ Rectangle {
   readonly property string formatHorizontal: widgetSettings.formatHorizontal !== undefined ? widgetSettings.formatHorizontal : widgetMetadata.formatHorizontal
   readonly property string formatVertical: widgetSettings.formatVertical !== undefined ? widgetSettings.formatVertical : widgetMetadata.formatVertical
 
-  implicitWidth: isBarVertical ? Style.capsuleHeight : Math.round((isBarVertical ? verticalLoader.implicitWidth : horizontalLoader.implicitWidth) + Style.marginM * 2)
+  implicitWidth: isBarVertical ? capsuleHeight : Math.round((isBarVertical ? verticalLoader.implicitWidth : horizontalLoader.implicitWidth) + Style.marginM * 2)
 
-  implicitHeight: isBarVertical ? Math.round(verticalLoader.implicitHeight + Style.marginS * 2) : Style.capsuleHeight
+  implicitHeight: isBarVertical ? Math.round(verticalLoader.implicitHeight + Style.marginS * 2) : capsuleHeight
 
   radius: Style.radiusS
-  color: Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent
+  color: barShowCapsule ? Color.mSurfaceVariant : Color.transparent
 
   Item {
     id: clockContainer
@@ -59,7 +59,7 @@ Rectangle {
       anchors.centerIn: parent
       sourceComponent: ColumnLayout {
         anchors.centerIn: parent
-        spacing: Settings.data.bar.showCapsule ? -4 : -2
+        spacing: barShowCapsule ? -4 : -2
         Repeater {
           id: repeater
           model: I18n.locale.toString(now, formatHorizontal.trim()).split("\\n")
@@ -122,7 +122,7 @@ Rectangle {
     hoverEnabled: true
     onEntered: {
       if (!PanelService.getPanel("calendarPanel", screen)?.active) {
-        TooltipService.show(Screen, root, I18n.tr("clock.tooltip"), BarService.getTooltipDirection())
+        TooltipService.show(Screen, root, I18n.tr("clock.tooltip"), BarService.getTooltipDirection(barPosition))
       }
     }
     onExited: {

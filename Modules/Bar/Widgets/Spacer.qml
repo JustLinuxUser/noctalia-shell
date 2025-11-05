@@ -9,6 +9,8 @@ Item {
   id: root
 
   property ShellScreen screen
+  readonly property var _barConfig: screen ? Settings.getMonitorBarConfig(screen.name) : Settings.getDefaultBarConfig()
+  readonly property real barHeight: BarService.getBarHeight(_barConfig.density, _barConfig.position)
 
   // Widget properties passed from Bar.qml for per-instance settings
   property string widgetId: ""
@@ -18,11 +20,8 @@ Item {
 
   property var widgetMetadata: BarWidgetRegistry.widgetMetadata[widgetId]
   property var widgetSettings: {
-    if (section && sectionWidgetIndex >= 0) {
-      var widgets = Settings.data.bar.widgets[section]
-      if (widgets && sectionWidgetIndex < widgets.length) {
-        return widgets[sectionWidgetIndex]
-      }
+    if (screen && section && sectionWidgetIndex >= 0) {
+      return Settings.getWidgetSettings(screen.name, section, sectionWidgetIndex)
     }
     return {}
   }
@@ -32,7 +31,7 @@ Item {
 
   // Set the width based on user settings
   implicitWidth: spacerWidth
-  implicitHeight: Style.barHeight
+  implicitHeight: barHeight
   width: implicitWidth
   height: implicitHeight
 }

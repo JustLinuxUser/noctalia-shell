@@ -26,10 +26,9 @@ NPanel {
     var _ = root.settingsVersion
     if (widgetSection === "" || widgetIndex < 0)
       return {}
-    var widgets = Settings.data.bar.widgets[widgetSection]
-    if (!widgets || widgetIndex >= widgets.length)
+    if (!screen)
       return {}
-    var settings = widgets[widgetIndex]
+    var settings = Settings.getWidgetSettings(screen.name, widgetSection, widgetIndex)
     if (!settings || settings.id !== "Tray")
       return {}
     return settings
@@ -69,7 +68,9 @@ NPanel {
   })
   readonly property int itemCount: trayValues.length
   readonly property int maxColumns: 8
-  readonly property real cellSize: Math.round(Style.capsuleHeight * 0.65)
+  readonly property var _barConfig: screen ? Settings.getMonitorBarConfig(screen.name) : Settings.getDefaultBarConfig()
+  readonly property real capsuleHeight: BarService.getCapsuleHeight(_barConfig.density, _barConfig.position)
+  readonly property real cellSize: Math.round(capsuleHeight * 0.65)
   readonly property real outerPadding: Style.marginM
   readonly property real innerSpacing: Style.marginM
   readonly property int columns: Math.max(1, Math.min(maxColumns, itemCount))
@@ -170,7 +171,7 @@ NPanel {
                          modelData?.scrollDown()
                        }
 
-              onEntered: TooltipService.show(Screen, trayIcon, modelData.tooltipTitle || modelData.name || modelData.id || "Tray Item", BarService.getTooltipDirection())
+              onEntered: TooltipService.show(Screen, trayIcon, modelData.tooltipTitle || modelData.name || modelData.id || "Tray Item", BarService.getTooltipDirection(barPosition))
               onExited: TooltipService.hide()
             }
           }

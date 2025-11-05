@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import qs.Commons
+import qs.Services
 
 
 /**
@@ -23,6 +24,7 @@ PanelWindow {
   readonly property bool barFloating: monitorConfig.floating || false
   readonly property real barMarginH: barFloating ? monitorConfig.marginHorizontal * Style.marginXL : 0
   readonly property real barMarginV: barFloating ? monitorConfig.marginVertical * Style.marginXL : 0
+  readonly property real barHeight: BarService.getBarHeight(monitorConfig.density, barPosition)
 
   // Invisible - just reserves space
   color: "transparent"
@@ -49,9 +51,9 @@ PanelWindow {
       // Vertical bar: reserve bar height + margin on the anchored edge only
       if (barFloating) {
         // For left bar, reserve left margin; for right bar, reserve right margin
-        return Style.barHeight + barMarginH
+        return barHeight + barMarginH
       }
-      return Style.barHeight
+      return barHeight
     }
     return 0 // Auto-width when left/right anchors are true
   }
@@ -61,9 +63,9 @@ PanelWindow {
       // Horizontal bar: reserve bar height + margin on the anchored edge only
       if (barFloating) {
         // For top bar, reserve top margin; for bottom bar, reserve bottom margin
-        return Style.barHeight + barMarginV
+        return barHeight + barMarginV
       }
-      return Style.barHeight
+      return barHeight
     }
     return 0 // Auto-height when top/bottom anchors are true
   }

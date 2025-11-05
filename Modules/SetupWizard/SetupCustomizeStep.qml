@@ -12,6 +12,9 @@ ColumnLayout {
   property real selectedScaleRatio: 1.0
   property string selectedBarPosition: "top"
 
+  // Per-monitor bar configuration (use default since this is a global setup)
+  property var barConfig: Settings.getDefaultBarConfig()
+
   signal scaleRatioChanged(real ratio)
   signal barPositionChanged(string position)
 
@@ -253,7 +256,7 @@ ColumnLayout {
               Layout.preferredHeight: 32
               Layout.preferredWidth: Math.max(90, densityText.implicitWidth + Style.marginXL * 2)
 
-              property bool isActive: Settings.data.bar.density === modelData.key
+              property bool isActive: root.barConfig.density === modelData.key
 
               color: (hoverHandler.hovered || isActive) ? Color.mPrimary : Color.mSurfaceVariant
               border.color: (hoverHandler.hovered || isActive) ? Color.mPrimary : Color.mOutline
@@ -275,7 +278,9 @@ ColumnLayout {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                  Settings.data.bar.density = modelData.key
+                  var config = JSON.parse(JSON.stringify(root.barConfig))
+                  config.density = modelData.key
+                  Settings.setMonitorBarConfig("default", config)
                 }
               }
 
@@ -404,9 +409,9 @@ ColumnLayout {
           }
         }
         NToggle {
-          checked: Settings.data.bar.floating
+          checked: barConfig.floating
           onToggled: function (checked) {
-            Settings.data.bar.floating = checked
+            barConfig.floating = checked
           }
         }
       }
@@ -434,11 +439,11 @@ ColumnLayout {
           from: 0
           to: 1
           stepSize: 0.01
-          value: Settings.data.bar.backgroundOpacity
+          value: barConfig.backgroundOpacity
           onMoved: function (value) {
-            Settings.data.bar.backgroundOpacity = value
+            barConfig.backgroundOpacity = value
           }
-          text: Math.floor(Settings.data.bar.backgroundOpacity * 100) + "%"
+          text: Math.floor(barConfig.backgroundOpacity * 100) + "%"
         }
       }
 

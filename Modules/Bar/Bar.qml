@@ -29,6 +29,7 @@ Item {
   readonly property bool barFloating: monitorConfig.floating || false
   readonly property real barMarginH: barFloating ? monitorConfig.marginHorizontal * Style.marginXL : 0
   readonly property real barMarginV: barFloating ? monitorConfig.marginVertical * Style.marginXL : 0
+  readonly property real barHeight: BarService.getBarHeight(monitorConfig.density, barPosition)
 
   // Attachment overlap to fix hairline gap with fractional scaling
   readonly property real attachmentOverlap: 1
@@ -72,25 +73,25 @@ Item {
         // Position and size the bar based on orientation and floating margins
         // Extend the bar by attachmentOverlap to eliminate hairline gap
         x: {
-          var baseX = (root.barPosition === "right") ? (parent.width - Style.barHeight - root.barMarginH) : root.barMarginH
+          var baseX = (root.barPosition === "right") ? (parent.width - barHeight - root.barMarginH) : root.barMarginH
           if (root.barPosition === "right")
             return baseX - root.attachmentOverlap // Extend left towards panels
           return baseX
         }
         y: {
-          var baseY = (root.barPosition === "bottom") ? (parent.height - Style.barHeight - root.barMarginV) : root.barMarginV
+          var baseY = (root.barPosition === "bottom") ? (parent.height - barHeight - root.barMarginV) : root.barMarginV
           if (root.barPosition === "bottom")
             return baseY - root.attachmentOverlap // Extend up towards panels
           return baseY
         }
         width: {
-          var baseWidth = root.barIsVertical ? Style.barHeight : (parent.width - root.barMarginH * 2)
+          var baseWidth = root.barIsVertical ? barHeight : (parent.width - root.barMarginH * 2)
           if (!root.barIsVertical)
             return baseWidth // Horizontal bars extend via height, not width
           return baseWidth + root.attachmentOverlap + 1
         }
         height: {
-          var baseHeight = root.barIsVertical ? (parent.height - root.barMarginV * 2) : Style.barHeight
+          var baseHeight = root.barIsVertical ? (parent.height - root.barMarginV * 2) : barHeight
           if (!root.barIsVertical)
             return baseHeight + root.attachmentOverlap
           return baseHeight // Vertical bars extend via width, not height
@@ -169,7 +170,10 @@ Item {
                             "widgetId": modelData.id,
                             "section": "left",
                             "sectionWidgetIndex": index,
-                            "sectionWidgetsCount": root.monitorConfig.widgets.left.length
+                            "sectionWidgetsCount": root.monitorConfig.widgets.left.length,
+                            "barPosition": root.barPosition,
+                            "barDensity": root.monitorConfig.density,
+                            "barShowCapsule": root.monitorConfig.showCapsule
                           })
             Layout.alignment: Qt.AlignHCenter
           }
@@ -195,7 +199,10 @@ Item {
                             "widgetId": modelData.id,
                             "section": "center",
                             "sectionWidgetIndex": index,
-                            "sectionWidgetsCount": root.monitorConfig.widgets.center.length
+                            "sectionWidgetsCount": root.monitorConfig.widgets.center.length,
+                            "barPosition": root.barPosition,
+                            "barDensity": root.monitorConfig.density,
+                            "barShowCapsule": root.monitorConfig.showCapsule
                           })
             Layout.alignment: Qt.AlignHCenter
           }
@@ -222,7 +229,10 @@ Item {
                             "widgetId": modelData.id,
                             "section": "right",
                             "sectionWidgetIndex": index,
-                            "sectionWidgetsCount": root.monitorConfig.widgets.right.length
+                            "sectionWidgetsCount": root.monitorConfig.widgets.right.length,
+                            "barPosition": root.barPosition,
+                            "barDensity": root.monitorConfig.density,
+                            "barShowCapsule": root.monitorConfig.showCapsule
                           })
             Layout.alignment: Qt.AlignHCenter
           }
@@ -260,7 +270,10 @@ Item {
                             "widgetId": modelData.id,
                             "section": "left",
                             "sectionWidgetIndex": index,
-                            "sectionWidgetsCount": root.monitorConfig.widgets.left.length
+                            "sectionWidgetsCount": root.monitorConfig.widgets.left.length,
+                            "barPosition": root.barPosition,
+                            "barDensity": root.monitorConfig.density,
+                            "barShowCapsule": root.monitorConfig.showCapsule
                           })
             Layout.alignment: Qt.AlignVCenter
           }
@@ -288,7 +301,10 @@ Item {
                             "widgetId": modelData.id,
                             "section": "center",
                             "sectionWidgetIndex": index,
-                            "sectionWidgetsCount": root.monitorConfig.widgets.center.length
+                            "sectionWidgetsCount": root.monitorConfig.widgets.center.length,
+                            "barPosition": root.barPosition,
+                            "barDensity": root.monitorConfig.density,
+                            "barShowCapsule": root.monitorConfig.showCapsule
                           })
             Layout.alignment: Qt.AlignVCenter
           }
@@ -317,7 +333,10 @@ Item {
                             "widgetId": modelData.id,
                             "section": "right",
                             "sectionWidgetIndex": index,
-                            "sectionWidgetsCount": root.monitorConfig.widgets.right.length
+                            "sectionWidgetsCount": root.monitorConfig.widgets.right.length,
+                            "barPosition": root.barPosition,
+                            "barDensity": root.monitorConfig.density,
+                            "barShowCapsule": root.monitorConfig.showCapsule
                           })
             Layout.alignment: Qt.AlignVCenter
           }

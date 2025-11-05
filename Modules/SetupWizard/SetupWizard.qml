@@ -31,6 +31,9 @@ NPanel {
   property real selectedScaleRatio: 1.0
   property string selectedBarPosition: "top"
 
+  // Per-monitor bar configuration (use default since this is a global setup)
+  property var barConfig: Settings.getDefaultBarConfig()
+
   panelContent: Component {
     Item {
       id: container
@@ -366,7 +369,7 @@ NPanel {
     }
 
     Settings.data.general.scaleRatio = selectedScaleRatio
-    Settings.data.bar.position = selectedBarPosition
+    barConfig.position = selectedBarPosition
     Settings.data.setupCompleted = true
 
     Settings.saveImmediate()
@@ -387,7 +390,7 @@ NPanel {
 
   function applyUISettings() {
     Settings.data.general.scaleRatio = selectedScaleRatio
-    Settings.data.bar.position = selectedBarPosition
+    barConfig.position = selectedBarPosition
   }
 
   Component.onCompleted: {
@@ -395,7 +398,7 @@ NPanel {
     // Initialize selections from existing settings to avoid overwriting user config
     if (Settings && Settings.data) {
       selectedScaleRatio = Settings.data.general.scaleRatio
-      selectedBarPosition = Settings.data.bar.position
+      selectedBarPosition = barConfig.position
       selectedWallpaperDirectory = Settings.data.wallpaper.directory || Settings.defaultWallpapersDirectory
     }
   }

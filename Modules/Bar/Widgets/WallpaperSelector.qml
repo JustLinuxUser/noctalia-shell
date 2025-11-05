@@ -9,14 +9,17 @@ NIconButton {
   id: root
 
   property ShellScreen screen
+  readonly property var _barConfig: screen ? Settings.getMonitorBarConfig(screen.name) : Settings.getDefaultBarConfig()
+  readonly property real capsuleHeight: BarService.getCapsuleHeight(_barConfig.density, _barConfig.position)
+  property bool barShowCapsule: true // Passed from Bar.qml
 
-  baseSize: Style.capsuleHeight
+  baseSize: capsuleHeight
   applyUiScale: false
-  density: Settings.data.bar.density
+  density: barDensity
   icon: "wallpaper-selector"
   tooltipText: I18n.tr("tooltips.open-wallpaper-selector")
-  tooltipDirection: BarService.getTooltipDirection()
-  colorBg: (Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent)
+  tooltipDirection: BarService.getTooltipDirection(barPosition)
+  colorBg: (barShowCapsule ? Color.mSurfaceVariant : Color.transparent)
   colorFg: Color.mOnSurface
   colorBorder: Color.transparent
   colorBorderHover: Color.transparent

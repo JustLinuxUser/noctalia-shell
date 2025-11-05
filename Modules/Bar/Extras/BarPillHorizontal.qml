@@ -21,6 +21,10 @@ Item {
   property bool oppositeDirection: false
   property bool hovered: false
 
+  // Compute capsuleHeight based on density and screen
+  readonly property var _barConfig: screen ? Settings.getMonitorBarConfig(screen.name) : Settings.getDefaultBarConfig()
+  readonly property real capsuleHeight: BarService.getCapsuleHeight(density || _barConfig.density, _barConfig.position)
+
   // Effective shown state (true if hovered/animated open or forced)
   readonly property bool revealed: !forceClose && (forceOpen || showPill)
 
@@ -37,9 +41,9 @@ Item {
   property bool showPill: false
   property bool shouldAnimateHide: false
 
-  readonly property int pillHeight: Style.capsuleHeight
-  readonly property int pillPaddingHorizontal: Math.round(Style.capsuleHeight * 0.2)
-  readonly property int pillOverlap: Math.round(Style.capsuleHeight * 0.5)
+  readonly property int pillHeight: capsuleHeight
+  readonly property int pillPaddingHorizontal: Math.round(capsuleHeight * 0.2)
+  readonly property int pillOverlap: Math.round(capsuleHeight * 0.5)
   readonly property int pillMaxWidth: Math.max(1, Math.round(textItem.implicitWidth + pillPaddingHorizontal * 2 + pillOverlap))
 
   readonly property real iconSize: {
@@ -82,7 +86,7 @@ Item {
                            (iconCircle.x + iconCircle.width / 2) - width // Opens left
 
     opacity: revealed ? Style.opacityFull : Style.opacityNone
-    color: Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent
+    color: barShowCapsule ? Color.mSurfaceVariant : Color.transparent
 
     readonly property int halfPillHeight: Math.round(pillHeight * 0.5)
 
@@ -135,7 +139,7 @@ Item {
     width: pillHeight
     height: pillHeight
     radius: width * 0.5
-    color: hovered ? Color.mHover : Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent
+    color: hovered ? Color.mHover : barShowCapsule ? Color.mSurfaceVariant : Color.transparent
     anchors.verticalCenter: parent.verticalCenter
 
     x: oppositeDirection ? 0 : (parent.width - width)
@@ -243,7 +247,7 @@ Item {
     onEntered: {
       hovered = true
       root.entered()
-      TooltipService.show(Screen, pill, root.tooltipText, BarService.getTooltipDirection(), Style.tooltipDelayLong)
+      TooltipService.show(Screen, pill, root.tooltipText, BarService.getTooltipDirection(barPosition), Style.tooltipDelayLong)
       if (forceClose) {
         return
       }

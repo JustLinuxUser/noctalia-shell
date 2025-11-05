@@ -23,19 +23,19 @@ Rectangle {
 
   property var widgetMetadata: BarWidgetRegistry.widgetMetadata[widgetId]
   property var widgetSettings: {
-    if (section && sectionWidgetIndex >= 0) {
-      var widgets = Settings.data.bar.widgets[section]
-      if (widgets && sectionWidgetIndex < widgets.length) {
-        return widgets[sectionWidgetIndex]
-      }
+    if (screen && section && sectionWidgetIndex >= 0) {
+      return Settings.getWidgetSettings(screen.name, section, sectionWidgetIndex)
     }
     return {}
   }
 
-  readonly property string barPosition: Settings.data.bar.position
+  property string barPosition: "top" // Passed from Bar.qml
+  property string barDensity: "default" // Passed from Bar.qml
+  property bool barShowCapsule: true // Passed from Bar.qml
+  readonly property real barHeight: BarService.getBarHeight(barDensity, barPosition)
+  readonly property real capsuleHeight: BarService.getCapsuleHeight(barDensity, barPosition)
   readonly property bool isVertical: barPosition === "left" || barPosition === "right"
-  readonly property bool density: Settings.data.bar.density
-  property real itemSize: Math.round(Style.capsuleHeight * 0.65)
+  property real itemSize: Math.round(capsuleHeight * 0.65)
   property list<string> blacklist: widgetSettings.blacklist || widgetMetadata.blacklist || [] // Read from settings
   property list<string> favorites: widgetSettings.favorites || widgetMetadata.favorites || []
   property var filteredItems: [] // Items to show inline (favorites)
@@ -155,6 +155,7 @@ Rectangle {
     // When the widget is fully initialized with its props set the screen for the trayMenu
     if (trayMenu.item) {
       trayMenu.item.screen = screen
+      trayMenu.item.barPosition = root.barPosition
     }
   }
 
@@ -177,10 +178,10 @@ Rectangle {
   }
 
   visible: filteredItems.length > 0 || dropdownItems.length > 0
-  implicitWidth: isVertical ? Style.capsuleHeight : Math.round(trayFlow.implicitWidth + Style.marginM * 2)
-  implicitHeight: isVertical ? Math.round(trayFlow.implicitHeight + Style.marginM * 2) : Style.capsuleHeight
+  implicitWidth: isVertical ? capsuleHeight : Math.round(trayFlow.implicitWidth + Style.marginM * 2)
+  implicitHeight: isVertical ? Math.round(trayFlow.implicitHeight + Style.marginM * 2) : capsuleHeight
   radius: Style.radiusM
-  color: Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent
+  color: barShowCapsule ? Color.mSurfaceVariant : Color.transparent
 
   Layout.alignment: Qt.AlignVCenter
 
@@ -280,7 +281,7 @@ Rectangle {
                              } else {
                                // For horizontal bars: center horizontally and position below
                                menuX = (width / 2) - (trayMenu.item.width / 2)
-                               menuY = Style.barHeight
+                               menuY = barHeight
                              }
                              trayMenu.item.menu = modelData.menu
                              trayMenu.item.trayItem = modelData
@@ -294,7 +295,7 @@ Rectangle {
                        }
             onEntered: {
               trayPanel.close()
-              TooltipService.show(Screen, trayIcon, modelData.tooltipTitle || modelData.name || modelData.id || "Tray Item", BarService.getTooltipDirection())
+              TooltipService.show(Screen, trayIcon, modelData.tooltipTitle || modelData.name || modelData.id || "Tray Item", BarService.getTooltipDirection(barPosition))
             }
             onExited: TooltipService.hide()
           }
@@ -343,7 +344,7 @@ Rectangle {
         cursorShape: Qt.PointingHandCursor
         onEntered: {
           dropdownButton.hovered = true
-          TooltipService.show(Screen, dropdownButton, I18n.tr("tooltips.open-tray-dropdown"), BarService.getTooltipDirection())
+          TooltipService.show(Screen, dropdownButton, I18n.tr("tooltips.open-tray-dropdown"), BarService.getTooltipDirection(barPosition))
         }
         onExited: {
           dropdownButton.hovered = false

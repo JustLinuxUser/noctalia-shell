@@ -19,17 +19,18 @@ Rectangle {
   property int sectionWidgetIndex: -1
   property int sectionWidgetsCount: 0
 
-  readonly property bool isVerticalBar: Settings.data.bar.position === "left" || Settings.data.bar.position === "right"
-  readonly property string density: Settings.data.bar.density
-  readonly property real itemSize: (density === "compact") ? Style.capsuleHeight * 0.9 : Style.capsuleHeight * 0.8
+  property string barPosition: "top" // Passed from Bar.qml
+  property string barDensity: "default" // Passed from Bar.qml
+  property bool barShowCapsule: true // Passed from Bar.qml
+  readonly property real barHeight: BarService.getBarHeight(barDensity, barPosition)
+  readonly property real capsuleHeight: BarService.getCapsuleHeight(barDensity, barPosition)
+  readonly property bool isVerticalBar: barPosition === "left" || barPosition === "right"
+  readonly property real itemSize: (density === "compact") ? capsuleHeight * 0.9 : capsuleHeight * 0.8
 
   property var widgetMetadata: BarWidgetRegistry.widgetMetadata[widgetId]
   property var widgetSettings: {
-    if (section && sectionWidgetIndex >= 0) {
-      var widgets = Settings.data.bar.widgets[section]
-      if (widgets && sectionWidgetIndex < widgets.length) {
-        return widgets[sectionWidgetIndex]
-      }
+    if (screen && section && sectionWidgetIndex >= 0) {
+      return Settings.getWidgetSettings(screen.name, section, sectionWidgetIndex)
     }
     return {}
   }
@@ -86,10 +87,10 @@ Rectangle {
     }
   }
 
-  implicitWidth: visible ? (isVerticalBar ? Style.capsuleHeight : Math.round(taskbarLayout.implicitWidth + Style.marginM * 2)) : 0
-  implicitHeight: visible ? (isVerticalBar ? Math.round(taskbarLayout.implicitHeight + Style.marginM * 2) : Style.capsuleHeight) : 0
+  implicitWidth: visible ? (isVerticalBar ? capsuleHeight : Math.round(taskbarLayout.implicitWidth + Style.marginM * 2)) : 0
+  implicitHeight: visible ? (isVerticalBar ? Math.round(taskbarLayout.implicitHeight + Style.marginM * 2) : capsuleHeight) : 0
   radius: Style.radiusM
-  color: Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent
+  color: barShowCapsule ? Color.mSurfaceVariant : Color.transparent
 
   GridLayout {
     id: taskbarLayout
@@ -178,7 +179,7 @@ Rectangle {
               }
             }
           }
-          onEntered: TooltipService.show(Screen, taskbarItem, taskbarItem.modelData.title || taskbarItem.modelData.appId || "Unknown app.", BarService.getTooltipDirection())
+          onEntered: TooltipService.show(Screen, taskbarItem, taskbarItem.modelData.title || taskbarItem.modelData.appId || "Unknown app.", BarService.getTooltipDirection(barPosition))
           onExited: TooltipService.hide()
         }
       }

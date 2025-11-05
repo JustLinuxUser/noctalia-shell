@@ -17,6 +17,10 @@ Variants {
 
     required property ShellScreen modelData
 
+    // Get bar configuration for this screen
+    property var barConfig: Settings.getMonitorBarConfig(modelData.name)
+    readonly property real barHeight: BarService.getBarHeight(barConfig.density, barConfig.position)
+
     // Access the notification model from the service
     property ListModel notificationModel: NotificationService.activeList
 
@@ -144,9 +148,9 @@ Variants {
         if (!(anchors.top))
           return 0
         var base = Style.marginM
-        if (Settings.data.bar.position === "top") {
-          var floatExtraV = Settings.data.bar.floating ? Settings.data.bar.marginVertical * Style.marginXL : 0
-          return Style.barHeight + base + floatExtraV
+        if (root.barConfig.position === "top") {
+          var floatExtraV = root.barConfig.floating ? root.barConfig.marginVertical * Style.marginXL : 0
+          return barHeight + base + floatExtraV
         }
         return base
       }
@@ -155,9 +159,9 @@ Variants {
         if (!(anchors.bottom))
           return 0
         var base = Style.marginM
-        if (Settings.data.bar.position === "bottom") {
-          var floatExtraV = Settings.data.bar.floating ? Settings.data.bar.marginVertical * Style.marginXL : 0
-          return Style.barHeight + base + floatExtraV
+        if (root.barConfig.position === "bottom") {
+          var floatExtraV = root.barConfig.floating ? root.barConfig.marginVertical * Style.marginXL : 0
+          return barHeight + base + floatExtraV
         }
         return base
       }
@@ -166,9 +170,9 @@ Variants {
         if (!(anchors.left))
           return 0
         var base = Style.marginM
-        if (Settings.data.bar.position === "left") {
-          var floatExtraH = Settings.data.bar.floating ? Settings.data.bar.marginHorizontal * Style.marginXL : 0
-          return Style.barHeight + base + floatExtraH
+        if (root.barConfig.position === "left") {
+          var floatExtraH = root.barConfig.floating ? root.barConfig.marginHorizontal * Style.marginXL : 0
+          return barHeight + base + floatExtraH
         }
         return base
       }
@@ -177,9 +181,9 @@ Variants {
         if (!(anchors.right))
           return 0
         var base = Style.marginM
-        if (Settings.data.bar.position === "right") {
-          var floatExtraH = Settings.data.bar.floating ? Settings.data.bar.marginHorizontal * Style.marginXL : 0
-          return Style.barHeight + base + floatExtraH
+        if (root.barConfig.position === "right") {
+          var floatExtraH = root.barConfig.floating ? root.barConfig.marginHorizontal * Style.marginXL : 0
+          return barHeight + base + floatExtraH
         }
         return base
       }

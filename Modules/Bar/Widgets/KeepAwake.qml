@@ -9,14 +9,17 @@ NIconButton {
   id: root
 
   property ShellScreen screen
+  readonly property var _barConfig: screen ? Settings.getMonitorBarConfig(screen.name) : Settings.getDefaultBarConfig()
+  readonly property real capsuleHeight: BarService.getCapsuleHeight(_barConfig.density, _barConfig.position)
+  property bool barShowCapsule: true // Passed from Bar.qml
 
-  baseSize: Style.capsuleHeight
+  baseSize: capsuleHeight
   applyUiScale: false
-  density: Settings.data.bar.density
+  density: barDensity
   icon: IdleInhibitorService.isInhibited ? "keep-awake-on" : "keep-awake-off"
   tooltipText: IdleInhibitorService.isInhibited ? I18n.tr("tooltips.disable-keep-awake") : I18n.tr("tooltips.enable-keep-awake")
-  tooltipDirection: BarService.getTooltipDirection()
-  colorBg: IdleInhibitorService.isInhibited ? Color.mPrimary : (Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent)
+  tooltipDirection: BarService.getTooltipDirection(barPosition)
+  colorBg: IdleInhibitorService.isInhibited ? Color.mPrimary : (barShowCapsule ? Color.mSurfaceVariant : Color.transparent)
   colorFg: IdleInhibitorService.isInhibited ? Color.mOnPrimary : Color.mOnSurface
   colorBorder: Color.transparent
   colorBorderHover: Color.transparent

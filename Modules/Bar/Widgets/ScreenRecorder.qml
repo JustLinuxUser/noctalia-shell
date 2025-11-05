@@ -8,14 +8,19 @@ NIconButton {
   id: root
 
   property ShellScreen screen
+  property string barPosition: "top" // Passed from Bar.qml
+  property string barDensity: "default" // Passed from Bar.qml
+  property bool barShowCapsule: true // Passed from Bar.qml
+  readonly property real barHeight: BarService.getBarHeight(barDensity, barPosition)
+  readonly property real capsuleHeight: BarService.getCapsuleHeight(barDensity, barPosition)
 
   icon: "camera-video"
   tooltipText: ScreenRecorderService.isRecording ? I18n.tr("tooltips.click-to-stop-recording") : I18n.tr("tooltips.click-to-start-recording")
-  tooltipDirection: BarService.getTooltipDirection()
-  density: Settings.data.bar.density
-  baseSize: Style.capsuleHeight
+  tooltipDirection: BarService.getTooltipDirection(barPosition)
+  density: barDensity
+  baseSize: capsuleHeight
   applyUiScale: false
-  colorBg: ScreenRecorderService.isRecording ? Color.mPrimary : (Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent)
+  colorBg: ScreenRecorderService.isRecording ? Color.mPrimary : (barShowCapsule ? Color.mSurfaceVariant : Color.transparent)
   colorFg: ScreenRecorderService.isRecording ? Color.mOnPrimary : Color.mOnSurface
   colorBorder: Color.transparent
   colorBorderHover: Color.transparent

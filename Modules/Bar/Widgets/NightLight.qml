@@ -12,18 +12,21 @@ NIconButton {
   id: root
 
   property ShellScreen screen
+  readonly property var _barConfig: screen ? Settings.getMonitorBarConfig(screen.name) : Settings.getDefaultBarConfig()
+  readonly property real capsuleHeight: BarService.getCapsuleHeight(_barConfig.density, _barConfig.position)
+  property bool barShowCapsule: true // Passed from Bar.qml
 
-  density: Settings.data.bar.density
-  baseSize: Style.capsuleHeight
+  density: barDensity
+  baseSize: capsuleHeight
   applyUiScale: false
-  colorBg: Settings.data.nightLight.forced ? Color.mPrimary : (Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent)
+  colorBg: Settings.data.nightLight.forced ? Color.mPrimary : (barShowCapsule ? Color.mSurfaceVariant : Color.transparent)
   colorFg: Settings.data.nightLight.forced ? Color.mOnPrimary : Color.mOnSurface
   colorBorder: Color.transparent
   colorBorderHover: Color.transparent
 
   icon: Settings.data.nightLight.enabled ? (Settings.data.nightLight.forced ? "nightlight-forced" : "nightlight-on") : "nightlight-off"
   tooltipText: Settings.data.nightLight.enabled ? (Settings.data.nightLight.forced ? I18n.tr("tooltips.night-light-forced") : I18n.tr("tooltips.night-light-enabled")) : I18n.tr("tooltips.night-light-disabled")
-  tooltipDirection: BarService.getTooltipDirection()
+  tooltipDirection: BarService.getTooltipDirection(barPosition)
   onClicked: {
     // Check if wlsunset is available before enabling night light
     if (!ProgramCheckerService.wlsunsetAvailable) {

@@ -19,7 +19,9 @@ Item {
   property bool oppositeDirection: false
   property bool hovered: false
 
-  readonly property string barPosition: Settings.data.bar.position
+  property string barPosition: "top" // Passed from parent widget
+  property string barDensity: "default" // Passed from parent
+  property bool barShowCapsule: true // Passed from parent
   readonly property bool isVerticalBar: barPosition === "left" || barPosition === "right"
 
   signal shown

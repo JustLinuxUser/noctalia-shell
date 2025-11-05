@@ -79,35 +79,6 @@ Singleton {
   property real baseWidgetSize: 33
   property real sliderWidth: 200
 
+  // Scale Ratio
   property real uiScaleRatio: Settings.data.general.scaleRatio
-
-  // Bar Dimensions
-  property real barHeight: {
-    switch (Settings.data.bar.density) {
-      case "mini":
-      return (Settings.data.bar.position === "left" || Settings.data.bar.position === "right") ? 22 : 20
-      case "compact":
-      return (Settings.data.bar.position === "left" || Settings.data.bar.position === "right") ? 27 : 25
-      case "comfortable":
-      return (Settings.data.bar.position === "left" || Settings.data.bar.position === "right") ? 39 : 37
-      default:
-
-      case "default":
-      return (Settings.data.bar.position === "left" || Settings.data.bar.position === "right") ? 33 : 31
-    }
-  }
-  property real capsuleHeight: {
-    switch (Settings.data.bar.density) {
-      case "mini":
-      return barHeight * 1.0
-      case "compact":
-      return barHeight * 0.85
-      case "comfortable":
-      return barHeight * 0.73
-      default:
-
-      case "default":
-      return barHeight * 0.82
-    }
-  }
 }

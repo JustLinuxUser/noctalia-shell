@@ -209,7 +209,7 @@ PanelWindow {
         id: cornersRoot
         anchors.fill: parent
 
-        property color cornerColor: Settings.data.general.forceBlackScreenCorners ? Color.black : Qt.alpha(Color.mSurface, Settings.data.bar.backgroundOpacity)
+        property color cornerColor: Settings.data.general.forceBlackScreenCorners ? Color.black : Qt.alpha(Color.mSurface, Settings.getMonitorBarConfig(root.screen?.name).backgroundOpacity)
         property real cornerRadius: Style.screenRadius
         property real cornerSize: Style.screenRadius
 

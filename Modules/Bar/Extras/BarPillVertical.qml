@@ -20,7 +20,11 @@ Item {
   property bool hovered: false
 
   // Bar position detection for pill direction
-  readonly property string barPosition: Settings.data.bar.position
+  property string barPosition: "top" // Passed from parent widget
+  property string barDensity: "default" // Passed from parent
+  property bool barShowCapsule: true // Passed from parent
+  readonly property real barHeight: BarService.getBarHeight(barDensity, barPosition)
+  readonly property real capsuleHeight: BarService.getCapsuleHeight(barDensity, barPosition)
   readonly property bool isVerticalBar: barPosition === "left" || barPosition === "right"
 
   // Determine pill direction based on section position
@@ -44,7 +48,7 @@ Item {
   property bool shouldAnimateHide: false
 
   // Sizing logic for vertical bars
-  readonly property int buttonSize: Style.capsuleHeight
+  readonly property int buttonSize: capsuleHeight
   readonly property int pillHeight: buttonSize
   readonly property int pillPaddingVertical: 3 * 2 // Very precise adjustment don't replace by Style.margin
   readonly property int pillOverlap: Math.round(buttonSize * 0.5)
@@ -93,7 +97,7 @@ Item {
     y: openUpward ? (iconCircle.y + iconCircle.height / 2 - height) : (iconCircle.y + iconCircle.height / 2)
 
     opacity: revealed ? Style.opacityFull : Style.opacityNone
-    color: Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent
+    color: barShowCapsule ? Color.mSurfaceVariant : Color.transparent
 
     readonly property int halfButtonSize: Math.round(buttonSize * 0.5)
 
@@ -156,7 +160,7 @@ Item {
     width: buttonSize
     height: buttonSize
     radius: width * 0.5
-    color: hovered ? Color.mHover : Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent
+    color: hovered ? Color.mHover : barShowCapsule ? Color.mSurfaceVariant : Color.transparent
 
     // Icon positioning based on direction
     x: 0
@@ -282,7 +286,7 @@ Item {
     onEntered: {
       hovered = true
       root.entered()
-      TooltipService.show(Screen, pill, root.tooltipText, BarService.getTooltipDirection(), Style.tooltipDelayLong)
+      TooltipService.show(Screen, pill, root.tooltipText, BarService.getTooltipDirection(barPosition), Style.tooltipDelayLong)
       if (forceClose) {
         return
       }
