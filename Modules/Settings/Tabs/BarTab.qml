@@ -10,6 +10,21 @@ ColumnLayout {
   id: root
   spacing: Style.marginL
 
+  // Track current monitor being configured
+  property int currentMonitorIndex: 0
+  property string currentMonitorName: {
+    if (Settings.data.bar.syncAcrossMonitors) {
+      return "default"
+    }
+    if (currentMonitorIndex >= 0 && currentMonitorIndex < Quickshell.screens.length) {
+      return Quickshell.screens[currentMonitorIndex].name
+    }
+    return "default"
+  }
+
+  // Get current monitor config
+  property var currentConfig: Settings.getMonitorBarConfig(currentMonitorName)
+
   // Helper functions to update arrays immutably
   function addMonitor(list, name) {
     const arr = (list || []).slice()
@@ -21,6 +36,13 @@ ColumnLayout {
     return (list || []).filter(function (n) {
       return n !== name
     })
+  }
+
+  // Helper to update current monitor's config
+  function updateCurrentConfig(property, value) {
+    var config = JSON.parse(JSON.stringify(currentConfig))
+    config[property] = value
+    Settings.setMonitorBarConfig(currentMonitorName, config)
   }
 
   // Handler for drag start - disables panel background clicks
@@ -39,11 +61,48 @@ ColumnLayout {
     }
   }
 
-  NHeader {
-    label: I18n.tr("settings.bar.appearance.section.label")
-    description: I18n.tr("settings.bar.appearance.section.description")
+  // Sync toggle at the top
+  NToggle {
+    Layout.fillWidth: true
+    label: "Sync all monitors"
+    description: "Use the same bar configuration on all monitors"
+    checked: Settings.data.bar.syncAcrossMonitors
+    onToggled: checked => {
+                 Settings.data.bar.syncAcrossMonitors = checked
+                 currentMonitorIndex = 0
+               }
   }
 
+  NDivider {
+    Layout.fillWidth: true
+    Layout.topMargin: Style.marginM
+    Layout.bottomMargin: Style.marginM
+  }
+
+  // Monitor tabs - only visible when not syncing
+  TabBar {
+    id: monitorTabBar
+    Layout.fillWidth: true
+    visible: !Settings.data.bar.syncAcrossMonitors
+
+    Repeater {
+      model: Quickshell.screens
+      TabButton {
+        required property var modelData
+        required property int index
+        text: modelData.name
+        onClicked: currentMonitorIndex = index
+      }
+    }
+  }
+
+  // Section header
+  NHeader {
+    label: Settings.data.bar.syncAcrossMonitors ? I18n.tr("settings.bar.appearance.section.label") : `Bar Configuration - ${currentMonitorName}`
+    description: Settings.data.bar.syncAcrossMonitors ? I18n.tr("settings.bar.appearance.section.description") : `Configure bar settings for monitor ${currentMonitorName}`
+  }
+
+  // Position
   NComboBox {
     Layout.fillWidth: true
     label: I18n.tr("settings.bar.appearance.position.label")
@@ -61,10 +120,11 @@ ColumnLayout {
         "key": "right",
         "name": I18n.tr("options.bar.position.right")
       }]
-    currentKey: Settings.data.bar.position
-    onSelected: key => Settings.data.bar.position = key
+    currentKey: currentConfig.position || "top"
+    onSelected: key => updateCurrentConfig("position", key)
   }
 
+  // Density
   NComboBox {
     Layout.fillWidth: true
     label: I18n.tr("settings.bar.appearance.density.label")
@@ -82,47 +142,48 @@ ColumnLayout {
         "key": "comfortable",
         "name": I18n.tr("options.bar.density.comfortable")
       }]
-    currentKey: Settings.data.bar.density
-    onSelected: key => Settings.data.bar.density = key
+    currentKey: currentConfig.density || "default"
+    onSelected: key => updateCurrentConfig("density", key)
   }
 
+  // Show Capsule
   NToggle {
     Layout.fillWidth: true
     label: I18n.tr("settings.bar.appearance.show-capsule.label")
     description: I18n.tr("settings.bar.appearance.show-capsule.description")
-    checked: Settings.data.bar.showCapsule
-    onToggled: checked => Settings.data.bar.showCapsule = checked
+    checked: currentConfig.showCapsule !== undefined ? currentConfig.showCapsule : true
+    onToggled: checked => updateCurrentConfig("showCapsule", checked)
   }
 
+  // Floating
   NToggle {
     Layout.fillWidth: true
     label: I18n.tr("settings.bar.appearance.floating.label")
     description: I18n.tr("settings.bar.appearance.floating.description")
-    checked: Settings.data.bar.floating
+    checked: currentConfig.floating || false
     onToggled: checked => {
-                 Settings.data.bar.floating = checked
+                 updateCurrentConfig("floating", checked)
                  if (checked) {
-                   // Disable outer corners when floating is enabled
-                   Settings.data.bar.outerCorners = false
+                   updateCurrentConfig("outerCorners", false)
                  } else {
-                   // Enable outer corners when floating is disabled
-                   Settings.data.bar.outerCorners = true
+                   updateCurrentConfig("outerCorners", true)
                  }
                }
   }
 
+  // Outer Corners
   NToggle {
     Layout.fillWidth: true
     label: I18n.tr("settings.bar.appearance.outer-corners.label")
     description: I18n.tr("settings.bar.appearance.outer-corners.description")
-    checked: Settings.data.bar.outerCorners
-    visible: !Settings.data.bar.floating
-    onToggled: checked => Settings.data.bar.outerCorners = checked
+    checked: currentConfig.outerCorners !== undefined ? currentConfig.outerCorners : true
+    visible: !currentConfig.floating
+    onToggled: checked => updateCurrentConfig("outerCorners", checked)
   }
 
-  // Floating bar options - only show when floating is enabled
+  // Floating bar margins
   ColumnLayout {
-    visible: Settings.data.bar.floating
+    visible: currentConfig.floating || false
     spacing: Style.marginS
     Layout.fillWidth: true
 
@@ -149,9 +210,9 @@ ColumnLayout {
           from: 0
           to: 1
           stepSize: 0.01
-          value: Settings.data.bar.marginVertical
-          onMoved: value => Settings.data.bar.marginVertical = value
-          text: Math.round(Settings.data.bar.marginVertical * 100) + "%"
+          value: currentConfig.marginVertical !== undefined ? currentConfig.marginVertical : 0.25
+          onMoved: value => updateCurrentConfig("marginVertical", value)
+          text: Math.round((currentConfig.marginVertical !== undefined ? currentConfig.marginVertical : 0.25) * 100) + "%"
         }
       }
 
@@ -169,14 +230,15 @@ ColumnLayout {
           from: 0
           to: 1
           stepSize: 0.01
-          value: Settings.data.bar.marginHorizontal
-          onMoved: value => Settings.data.bar.marginHorizontal = value
-          text: Math.round(Settings.data.bar.marginHorizontal * 100) + "%"
+          value: currentConfig.marginHorizontal !== undefined ? currentConfig.marginHorizontal : 0.25
+          onMoved: value => updateCurrentConfig("marginHorizontal", value)
+          text: Math.round((currentConfig.marginHorizontal !== undefined ? currentConfig.marginHorizontal : 0.25) * 100) + "%"
         }
       }
     }
   }
 
+  // Background Opacity
   ColumnLayout {
     spacing: Style.marginXXS
     Layout.fillWidth: true
@@ -191,9 +253,9 @@ ColumnLayout {
       from: 0
       to: 1
       stepSize: 0.01
-      value: Settings.data.bar.backgroundOpacity
-      onMoved: value => Settings.data.bar.backgroundOpacity = value
-      text: Math.floor(Settings.data.bar.backgroundOpacity * 100) + "%"
+      value: currentConfig.backgroundOpacity !== undefined ? currentConfig.backgroundOpacity : 1.0
+      onMoved: value => updateCurrentConfig("backgroundOpacity", value)
+      text: Math.floor((currentConfig.backgroundOpacity !== undefined ? currentConfig.backgroundOpacity : 1.0) * 100) + "%"
     }
   }
 
@@ -226,7 +288,7 @@ ColumnLayout {
         sectionId: "left"
         settingsDialogComponent: Qt.resolvedUrl(Quickshell.shellDir + "/Modules/Settings/Bar/BarWidgetSettingsDialog.qml")
         widgetRegistry: BarWidgetRegistry
-        widgetModel: Settings.data.bar.widgets.left
+        widgetModel: currentConfig.widgets ? currentConfig.widgets.left || [] : []
         availableWidgets: availableWidgets
         onAddWidget: (widgetId, section) => _addWidgetToSection(widgetId, section)
         onRemoveWidget: (section, index) => _removeWidgetFromSection(section, index)
@@ -243,7 +305,7 @@ ColumnLayout {
         sectionId: "center"
         settingsDialogComponent: Qt.resolvedUrl(Quickshell.shellDir + "/Modules/Settings/Bar/BarWidgetSettingsDialog.qml")
         widgetRegistry: BarWidgetRegistry
-        widgetModel: Settings.data.bar.widgets.center
+        widgetModel: currentConfig.widgets ? currentConfig.widgets.center || [] : []
         availableWidgets: availableWidgets
         onAddWidget: (widgetId, section) => _addWidgetToSection(widgetId, section)
         onRemoveWidget: (section, index) => _removeWidgetFromSection(section, index)
@@ -260,7 +322,7 @@ ColumnLayout {
         sectionId: "right"
         settingsDialogComponent: Qt.resolvedUrl(Quickshell.shellDir + "/Modules/Settings/Bar/BarWidgetSettingsDialog.qml")
         widgetRegistry: BarWidgetRegistry
-        widgetModel: Settings.data.bar.widgets.right
+        widgetModel: currentConfig.widgets ? currentConfig.widgets.right || [] : []
         availableWidgets: availableWidgets
         onAddWidget: (widgetId, section) => _addWidgetToSection(widgetId, section)
         onRemoveWidget: (section, index) => _removeWidgetFromSection(section, index)
@@ -279,7 +341,7 @@ ColumnLayout {
     Layout.bottomMargin: Style.marginXL
   }
 
-  // Monitor Configuration
+  // Monitor Visibility Configuration
   ColumnLayout {
     spacing: Style.marginM
     Layout.fillWidth: true
@@ -321,8 +383,20 @@ ColumnLayout {
     Layout.bottomMargin: Style.marginXL
   }
 
-  // Signal functions
+  // Widget management functions - now monitor-aware
   function _addWidgetToSection(widgetId, section) {
+    var config = JSON.parse(JSON.stringify(currentConfig))
+    if (!config.widgets) {
+      config.widgets = {
+        "left": [],
+        "center": [],
+        "right": []
+      }
+    }
+    if (!config.widgets[section]) {
+      config.widgets[section] = []
+    }
+
     var newWidget = {
       "id": widgetId
     }
@@ -336,14 +410,15 @@ ColumnLayout {
         })
       }
     }
-    Settings.data.bar.widgets[section].push(newWidget)
+    config.widgets[section].push(newWidget)
+    Settings.setMonitorBarConfig(currentMonitorName, config)
   }
 
   function _removeWidgetFromSection(section, index) {
-    if (index >= 0 && index < Settings.data.bar.widgets[section].length) {
-      var newArray = Settings.data.bar.widgets[section].slice()
-      var removedWidgets = newArray.splice(index, 1)
-      Settings.data.bar.widgets[section] = newArray
+    var config = JSON.parse(JSON.stringify(currentConfig))
+    if (config.widgets && config.widgets[section] && index >= 0 && index < config.widgets[section].length) {
+      var removedWidgets = config.widgets[section].splice(index, 1)
+      Settings.setMonitorBarConfig(currentMonitorName, config)
 
       // Check that we still have a control center
       if (removedWidgets[0].id === "ControlCenter" && BarService.lookupWidget("ControlCenter") === undefined) {
@@ -353,41 +428,33 @@ ColumnLayout {
   }
 
   function _reorderWidgetInSection(section, fromIndex, toIndex) {
-    if (fromIndex >= 0 && fromIndex < Settings.data.bar.widgets[section].length && toIndex >= 0 && toIndex < Settings.data.bar.widgets[section].length) {
-
-      // Create a new array to avoid modifying the original
-      var newArray = Settings.data.bar.widgets[section].slice()
-      var item = newArray[fromIndex]
-      newArray.splice(fromIndex, 1)
-      newArray.splice(toIndex, 0, item)
-
-      Settings.data.bar.widgets[section] = newArray
-      //Logger.i("BarTab", "Widget reordered. New array:", JSON.stringify(newArray))
+    var config = JSON.parse(JSON.stringify(currentConfig))
+    if (config.widgets && config.widgets[section] && fromIndex >= 0 && fromIndex < config.widgets[section].length && toIndex >= 0 && toIndex < config.widgets[section].length) {
+      var item = config.widgets[section][fromIndex]
+      config.widgets[section].splice(fromIndex, 1)
+      config.widgets[section].splice(toIndex, 0, item)
+      Settings.setMonitorBarConfig(currentMonitorName, config)
     }
   }
 
   function _updateWidgetSettingsInSection(section, index, settings) {
-    // Update the widget settings in the Settings data
-    Settings.data.bar.widgets[section][index] = settings
-    //Logger.i("BarTab", `Updated widget settings for ${settings.id} in ${section} section`)
+    var config = JSON.parse(JSON.stringify(currentConfig))
+    if (config.widgets && config.widgets[section] && index >= 0 && index < config.widgets[section].length) {
+      config.widgets[section][index] = settings
+      Settings.setMonitorBarConfig(currentMonitorName, config)
+    }
   }
 
   function _moveWidgetBetweenSections(fromSection, index, toSection) {
-    // Get the widget from the source section
-    if (index >= 0 && index < Settings.data.bar.widgets[fromSection].length) {
-      var widget = Settings.data.bar.widgets[fromSection][index]
-
-      // Remove from source section
-      var sourceArray = Settings.data.bar.widgets[fromSection].slice()
-      sourceArray.splice(index, 1)
-      Settings.data.bar.widgets[fromSection] = sourceArray
-
-      // Add to target section
-      var targetArray = Settings.data.bar.widgets[toSection].slice()
-      targetArray.push(widget)
-      Settings.data.bar.widgets[toSection] = targetArray
-
-      //Logger.i("BarTab", `Moved widget ${widget.id} from ${fromSection} to ${toSection}`)
+    var config = JSON.parse(JSON.stringify(currentConfig))
+    if (config.widgets && config.widgets[fromSection] && index >= 0 && index < config.widgets[fromSection].length) {
+      var widget = config.widgets[fromSection][index]
+      config.widgets[fromSection].splice(index, 1)
+      if (!config.widgets[toSection]) {
+        config.widgets[toSection] = []
+      }
+      config.widgets[toSection].push(widget)
+      Settings.setMonitorBarConfig(currentMonitorName, config)
     }
   }
 
